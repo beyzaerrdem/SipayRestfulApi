@@ -14,6 +14,7 @@
                     Name = "Titanik",
                     Description = "Film",
                     Time = 100,
+
                     ImdbPoint = 9
                 },
                 new Movie()

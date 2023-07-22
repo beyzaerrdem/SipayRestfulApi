@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SipayRestfulApi.Extension;
 using SipayRestfulApi.Model;
+using SipayRestfulApi.Service;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -9,9 +11,28 @@ namespace SipayRestfulApi.Controllers
     [ApiController]
     public class MovieController : ControllerBase
     {
-        
+        private readonly IMovieService _movieService;
+
+        public MovieController(IMovieService movieService)
+        {
+            _movieService = movieService;
+        }
+
         [HttpGet]
-        public IActionResult GetAllMovie()
+        [Route("getAll")]
+        public IActionResult GetAll()
+        {
+            // Controller içinde IMovieService'in kullanımı
+            var data = _movieService.GetAll();
+            if(data == null)
+            {
+                return StatusCode(404, "Not Found");
+            }
+            return StatusCode(200,data);
+        }
+
+        [HttpGet]
+        public IActionResult GetMovie()
         {
             var movies = new Movies();
             IEnumerable<Movie> m;
@@ -38,7 +59,6 @@ namespace SipayRestfulApi.Controllers
 
 
         // POST api/<MovieController>
-
         [HttpPost]
         public IActionResult AddMovie([FromBody] Movie m)
         {
@@ -53,6 +73,7 @@ namespace SipayRestfulApi.Controllers
         {
             var movie = new Movies();
             var movieId = movie.MovieList.Where(x=>x.Id == id).FirstOrDefault();
+            if (movieId == null) return StatusCode(404, "Not Found");
             movieId.Name = m.Name;
             movieId.Description = m.Description;
             movieId.Time = m.Time;
@@ -65,9 +86,9 @@ namespace SipayRestfulApi.Controllers
         public IActionResult DeleteMovie(int id)
         {
             var movie = new Movies();
-            var movieId = movie.MovieList.Where(x => x.Id == id).FirstOrDefault();
-            movie.MovieList.Remove(movieId);
+            var movieId = movie.MovieList.Where(x => x.Id == id).FirstOrDefault();         
             if (movieId == null) return StatusCode(404, "Not Found");
+            movie.MovieList.Remove(movieId);
             return StatusCode(200);
 
         }
@@ -77,9 +98,15 @@ namespace SipayRestfulApi.Controllers
         {
             var movie = new Movies();
             var mov = movie.MovieList.Where(x => x.Id == id).FirstOrDefault();
+            if (mov == null) return StatusCode(404, "Not Found");
             mov.Name = m.Name;
             return StatusCode(200, movie);
         }
 
+        [HttpGet("time/{name}")]
+        public IActionResult GetMovie(string name)
+        {
+            return this.GetTimeMovie(name); // Extension methodu çağırma
+        }
     }
 }
